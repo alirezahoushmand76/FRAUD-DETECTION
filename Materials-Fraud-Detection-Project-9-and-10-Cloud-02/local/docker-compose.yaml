@@ -1,0 +1,46 @@
+services:
+  mysql:
+    image: debezium/example-mysql:3.0.0.Final
+    container_name: mysql
+    ports:
+      - 3306:3306
+    networks:
+      - my-network 
+    environment:
+      - MYSQL_ROOT_PASSWORD=debezium
+      - MYSQL_USER=mysqluser
+      - MYSQL_PASSWORD=mysqlpw
+
+  postgres:
+    image: debezium/postgres:16
+    container_name: postgres
+    networks:
+      - my-network 
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123456 
+    ports:
+      - "6543:5432"  
+
+  connect:
+    image: debezium/connect:3.0.0.Final
+    container_name: connect
+    ports:
+      - 8083:8083
+    networks:
+      - my-network
+    environment:
+      - BOOTSTRAP_SERVERS=5.34.193.57:9092
+      - GROUP_ID=1 
+      - CONFIG_STORAGE_TOPIC=my_connect_configs
+      - OFFSET_STORAGE_TOPIC=my_connect_offsets
+      - STATUS_STORAGE_TOPIC=my_connect_statuses
+      - CONNECT_TIMEOUT_MS=6000000          
+      - RETRY_BACKOFF_MS=5000              
+      - SESSION_TIMEOUT_MS=3000000
+   
+networks:
+  my-network:
+    driver: bridge
+

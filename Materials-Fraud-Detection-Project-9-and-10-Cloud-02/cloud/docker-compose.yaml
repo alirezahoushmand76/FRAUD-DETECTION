@@ -1,0 +1,74 @@
+services:
+  zookeeper:
+    image: debezium/zookeeper:3.0.0.Final 
+    container_name: zookeeper
+    ports:
+      - 2181:2181
+    networks:
+      - my-network
+
+  kafka:
+    image: debezium/kafka:3.0.0.Final
+    container_name: kafka
+    ports:
+      - 9092:9092
+    networks:
+      - my-network
+    environment:
+      - ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://5.34.193.57:9092
+      - LISTENERS=PLAINTEXT://0.0.0.0:9092
+   
+  kafka-ui:
+    container_name: kafka-ui
+    image: provectuslabs/kafka-ui:v0.7.2
+    ports:
+      - 9090:8080 
+    depends_on:
+      - kafka
+    networks:
+      - my-network
+    environment:
+      - KAFKA_CLUSTERS_0_NAME= local
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS= 5.34.193.57:9092
+      - DYNAMIC_CONFIG_ENABLED= 'true'
+
+  spark:
+    image: bitnami/spark:3.5.4
+    container_name: spark
+    networks:
+      - my-network
+    ports:
+      - "8080:8080" 
+      - "7077:7077"
+    environment:
+      - SPARK_MODE=master
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana:11.4.0
+    ports:
+      - "3000:3000"
+    networks:
+      - my-network
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin123 
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - ./grafana-storage:/var/lib/grafana     
+
+  redis:
+    image: redis:7.4.1
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - my-network
+     
+networks:
+  my-network:
+    driver: bridge
+
+volumes:
+  grafana-storage:
